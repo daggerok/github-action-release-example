@@ -1,0 +1,36 @@
+name: 'check versions updates'
+on:
+  workflow_dispatch:
+    inputs:
+      trigger:
+        description: Type m to triggre manual jobs
+        required: false
+        default: ''
+env:
+  JAVA_VERSION: 17
+jobs:
+  updates:
+    #See reference: https://docs.github.com/en/actions/reference/context-and-expression-syntax-for-github-actions#functions
+    #manual job definition:
+    if: startsWith(github.event.inputs.trigger, 'm')
+      || startsWith(github.event.inputs.trigger, 'M')
+    name: updates java-${{ matrix.java }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-java@v2
+        with:
+          # 'temurin' 'zulu' 'adopt' 'adopt-hotspot' 'adopt-openj9' 'liberica' 'microsoft'
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.m2
+            ~/.npm
+            ~/.docker
+            ~/.gradle
+          key: ${{ runner.os }}-build-${{ hashFiles('**/*gradle*', '**/pom.xml') }}
+      - run: cd $GITHUB_WORKSPACE ; ./gradlew --no-daemon --console=plain --stop
+      - run: cd $GITHUB_WORKSPACE ; ./gradlew --no-daemon --console=plain dependencyUpdates -Drevision=release
+      - run: cd $GITHUB_WORKSPACE ; ./mvnw versions:display-property-updates
