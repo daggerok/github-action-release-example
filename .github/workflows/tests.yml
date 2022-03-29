@@ -22,7 +22,6 @@ jobs:
     if: github.event.inputs.trigger == ''
       || !startsWith(github.event.inputs.trigger, 'm')
       || !startsWith(github.event.inputs.trigger, 'M')
-    name: check java-${{ matrix.java }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1

@@ -1,6 +1,15 @@
 # github-action-release-example [![tests](https://github.com/daggerok/github-action-release-example/actions/workflows/tests.yml/badge.svg)](https://github.com/daggerok/github-action-release-example/actions/workflows/tests.yml) [![pre-release](https://github.com/daggerok/github-action-release-example/actions/workflows/pre-release.yml/badge.svg)](https://github.com/daggerok/github-action-release-example/actions/workflows/pre-release.yml)
 Release apps with github-actions
 
+## on master push re-tag each `master` build and publish `latest` pre-release
+
+## on any vX.Y.Z tag publish associated release
+
+```bash
+git tag v0.0.1
+git push --tags
+```
+
 ## RTFM
 * [Official Apache Maven documentation](https://maven.apache.org/guides/index.html)
 * [Spring Boot Maven Plugin Reference Guide](https://docs.spring.io/spring-boot/docs/2.6.5/maven-plugin/reference/html/)

@@ -1,21 +1,13 @@
 name: pre-release
 on:
-  workflow_dispatch:
-    inputs:
-      trigger:
-        description: Type m to triggre manual jobs
-        required: false
-        default: ''
   push:
     branches: [ master, main ]
-  pull_request:
-    branches: [ master, main ]
+    tags-ignore:
+      - '*'
 env:
   JAVA_VERSION: '17'
 jobs:
   pre-release:
-    #if: startsWith(github.event.inputs.trigger, 'm')
-    #  || startsWith(github.event.inputs.trigger, 'M')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
@@ -45,13 +37,31 @@ jobs:
       #    folder: target/generated-docs # The folder the action should deploy.
       ## Create 'latest' pre-release
       - run: mkdir -p $GITHUB_WORKSPACE/dist
-      - run: mv -f $GITHUB_WORKSPACE/build/libs/*.jar $GITHUB_WORKSPACE/dist/gradle-app.jar
-      - run: mv -f $GITHUB_WORKSPACE/target/*.jar     $GITHUB_WORKSPACE/dist/maven-app.jar
-      - uses: "marvinpinto/action-automatic-releases@latest"
+      - run: cp -Rfv $GITHUB_WORKSPACE/build/libs/*.jar $GITHUB_WORKSPACE/build/libs/gradle-app.jar
+      - run: mv -f $GITHUB_WORKSPACE/build/libs/*.jar $GITHUB_WORKSPACE/dist/
+      - run: cp -Rfv $GITHUB_WORKSPACE/target/*.jar $GITHUB_WORKSPACE/target/maven-app.jar
+      - run: cp -Rfv $GITHUB_WORKSPACE/target/*.jar $GITHUB_WORKSPACE/dist/
+      - name: Set env variables
+        id: refs_names
+        run: |
+          echo ::set-output name=SOURCE_NAME::${GITHUB_REF#refs/*/}
+          echo ::set-output name=SOURCE_BRANCH::${GITHUB_REF#refs/heads/}
+          echo ::set-output name=SOURCE_TAG::${GITHUB_REF#refs/tags/}
+      - name: Get env variables
+        env:
+          SOURCE_NAME: ${{ steps.refs_names.outputs.SOURCE_NAME }}
+          SOURCE_BRANCH: ${{ steps.refs_names.outputs.SOURCE_BRANCH }}
+          SOURCE_TAG: ${{ steps.refs_names.outputs.SOURCE_TAG }}
+        run: |
+          echo $SOURCE_NAME
+          echo $SOURCE_BRANCH
+          echo $SOURCE_TAG
+      - uses: 'marvinpinto/action-automatic-releases@latest'
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: "latest"
           prerelease: true
-          title: "Development Build"
+          title: "Latest ${{ steps.refs_names.outputs.SOURCE_NAME }} build"
           files: |
-            dist/*.jar
+            dist/**/*.jar
+            LICENSE.txt
